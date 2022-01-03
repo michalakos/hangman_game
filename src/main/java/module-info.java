@@ -1,7 +1,7 @@
 module com.example.hangman {
     requires javafx.controls;
     requires javafx.fxml;
-    requires java.json;
+    requires javax.json;
 
 
     opens com.example.hangman to javafx.fxml;

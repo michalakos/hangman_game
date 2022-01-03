@@ -158,6 +158,7 @@ public class App extends Application {
             catch (Exception e) {
                 e.printStackTrace();
             }
+            Dictionary.add("1", "OL45883W");
         });
 
         HBox lower = new HBox(char_box, pos_box, button_box);
