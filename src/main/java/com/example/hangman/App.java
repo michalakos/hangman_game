@@ -11,42 +11,153 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class App extends Application {
+    private static String DICT_PATH = "medialab/hangman_DICTIONARY-";
     @Override
     public void start(Stage stage) throws IOException {
+        Session session = new Session();
+        Game game = new Game();
+
         final double MAX_FONT_SIZE = 30.0;
         final String IMAGE_PATH = "src/main/resources/pictures/";
-
-        AtomicInteger i = new AtomicInteger();
 
         MenuBar menuBar = new MenuBar();
 
         Menu application = new Menu("Application");
 
         MenuItem start = new MenuItem("Start");
-        start.setOnAction(e -> {
-            Controller.startAction();
-        });
 
         MenuItem load = new MenuItem("Load");
         load.setOnAction(e -> {
-            Controller.loadAction();
+            final Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stage);
+
+            Label dict_label = new Label();
+            dict_label.setText("DICTIONARY_ID: ");
+            HBox d_label_box = new HBox(dict_label);
+            d_label_box.setPadding(new Insets(10));
+            d_label_box.setAlignment(Pos.CENTER_LEFT);
+
+            TextField dict_num = new TextField();
+            HBox d_input_box = new HBox(dict_num);
+            d_input_box.setPadding(new Insets(10));
+            d_input_box.setAlignment(Pos.CENTER_RIGHT);
+
+            HBox d_box = new HBox(d_label_box, d_input_box);
+            Label message = new Label();
+
+            VBox input = new VBox(d_box, message);
+
+            Button new_dict_button = new Button();
+            new_dict_button.setText("Load");
+            new_dict_button.setPadding(new Insets(10));
+            HBox button = new HBox(new_dict_button);
+            button.setAlignment(Pos.BOTTOM_RIGHT);
+            button.setPadding(new Insets(5));
+
+            new_dict_button.setOnAction(event -> {
+                try {
+                    String dict_id = dict_num.getText();
+                    File file = new File(DICT_PATH + dict_id + ".txt");
+                    if (file.exists()) {
+                        session.setDictionary(dict_id);
+                        Stage st = (Stage) new_dict_button.getScene().getWindow();
+                        st.close();
+                    }
+                    else {
+                        message.setText("This dictionary does not exist");
+                    }
+                }
+                catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+            });
+            VBox popup = new VBox(input, button);
+            VBox.setVgrow(input, Priority.ALWAYS);
+            Scene popup_scene = new Scene(popup, 500, 200);
+            dialog.setScene(popup_scene);
+            dialog.setTitle("Load a dictionary");
+            dialog.show();
         });
 
         MenuItem create = new MenuItem("Create");
         create.setOnAction(e -> {
+            final Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stage);
+
+            Label dict_label = new Label();
+            dict_label.setText("DICTIONARY_ID: ");
+            HBox d_label_box = new HBox(dict_label);
+            d_label_box.setPadding(new Insets(10));
+            d_label_box.setAlignment(Pos.CENTER_LEFT);
+
+            TextField dict_num = new TextField();
+            HBox d_input_box = new HBox(dict_num);
+            d_input_box.setPadding(new Insets(10));
+            d_input_box.setAlignment(Pos.CENTER_RIGHT);
+
+            HBox dict = new HBox(d_label_box, d_input_box);
+
+            Label open_lib_label = new Label();
+            open_lib_label.setText("OpenLibraryID:   ");
+            HBox ol_label_box = new HBox(open_lib_label);
+            ol_label_box.setAlignment(Pos.CENTER_LEFT);
+            ol_label_box.setPadding(new Insets(10));
+
+            TextField open_lib_num = new TextField();
+            HBox ol_input_box = new HBox(open_lib_num);
+            ol_input_box.setPadding(new Insets(10));
+            ol_input_box.setAlignment(Pos.CENTER_RIGHT);
+
+            HBox open_lib = new HBox(ol_label_box, ol_input_box);
+
+            VBox input = new VBox(dict, open_lib);
+
+            Button new_dict_button = new Button();
+            new_dict_button.setText("Create");
+            new_dict_button.setPadding(new Insets(10));
+            HBox button = new HBox(new_dict_button);
+            button.setAlignment(Pos.BOTTOM_RIGHT);
+            button.setPadding(new Insets(5));
+
+            new_dict_button.setOnAction(event -> {
+                try {
+                    String dict_id = dict_num.getText();
+                    String open_lib_id = open_lib_num.getText();
+                    System.out.println(dict_id + open_lib_id);
+                    Dictionary.add(dict_id, open_lib_id);
+                }
+                catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+                Stage st = (Stage) new_dict_button.getScene().getWindow();
+                st.close();
+            });
+            VBox popup = new VBox(input, button);
+            VBox.setVgrow(input, Priority.ALWAYS);
+            Scene popup_scene = new Scene(popup, 500, 200);
+            dialog.setScene(popup_scene);
+            dialog.setTitle("Create a dictionary");
+            dialog.show();
             Controller.createAction();
         });
 
         MenuItem exit = new MenuItem("Exit");
         exit.setOnAction(e -> {
-            Controller.exitAction();
+            Stage st = (Stage) menuBar.getScene().getWindow();
+            st.close();
         });
 
         application.getItems().add(start);
@@ -89,13 +200,13 @@ public class App extends Application {
         Label points = new Label();
         points.setText("Points: ");
         Label points_num = new Label();
-        points_num.setText("0");
+        points_num.setText("");
         HBox points_box = new HBox(points, points_num);
 
         Label success = new Label();
         success.setText("Correct guesses: ");
         Label success_percent = new Label();
-        success_percent.setText("10%");
+        success_percent.setText("");
         HBox success_box = new HBox(success, success_percent);
 
         HBox upper = new HBox(word_count_box, points_box, success_box);
@@ -107,18 +218,18 @@ public class App extends Application {
         Image image = new Image(pic);
         ImageView tries = new ImageView(image);
         HBox image_box = new HBox(tries);
+        image_box.setPadding(new Insets(10));
 
         Label word = new Label();
         word.setFont(new Font(MAX_FONT_SIZE));
-        word.setText("PLACEHOLDER");
+        word.setText("");
         HBox word_box = new HBox(word);
-        word_box.setPadding(new Insets(20,20,20,20));
+        word_box.setPadding(new Insets(20));
 
         VBox game_state_box = new VBox(image_box, word_box);
 
         Label possible_answers = new Label();
-        possible_answers.setText("Position 0: A, B, C, D, E, F, G, H, I, J\n" +
-                "Position 1: A, B, C, D, E, F\nPosition 2: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z");
+        possible_answers.setText("");
         possible_answers.setPadding(new Insets(30));
         HBox pos_ans_box = new HBox(possible_answers);
 
@@ -144,21 +255,39 @@ public class App extends Application {
         button_box.setPadding(new Insets(40));
 
         button.setOnAction(action -> {
-            String char_in = char_select.getText();
-            String pos_in = pos_select.getText();
-            System.out.println(char_in + pos_in);
-            char_select.clear();
-            pos_select.clear();
-            try
-            {
-                FileInputStream pic_tmp = new FileInputStream(IMAGE_PATH + "stage1.png");
-                Image image_tmp = new Image(pic_tmp);
-                tries.setImage(image_tmp);
+            char char_in = char_select.getText().charAt(0);
+            int pos;
+            try {
+                pos = Integer.parseInt(pos_select.getText());
             }
             catch (Exception e) {
-                e.printStackTrace();
+                pos = 0;
             }
-            Dictionary.add("1", "OL45883W");
+            byte pos_in = (byte) pos;
+            if (char_select.getText().length() > 1 || char_in > 'Z' || char_in < 'A') {
+                System.err.println("Input must be a single character from A to Z");
+            }
+            else if (pos_in > game.getLength() || pos_in < 1 || game.getFoundPositions().contains(pos_in)) {
+                System.err.println("Position must be a number designating a missing character where the first " +
+                        "character of the word has position 1");
+            }
+            char_select.clear();
+            pos_select.clear();
+            boolean game_finished = game.nextMove(char_in, pos_in);
+            game.updateProbabilities();
+            tries.setImage(game.getTries());
+
+            word.setText(game.getDisplayedWord());
+            possible_answers.setText(game.getPossibleAnswers());
+            points_num.setText(game.getPoints());
+            success_percent.setText(game.getSuccessPercentage());
+            word_count.setText(game.getAvailableWordCount());
+
+            if (game_finished) {
+                String msg = (game.getWinner() == "PLAYER") ? "Congratulations!" : "Better luck next time";
+                System.out.println(msg);
+                session.setRounds(game);
+            }
         });
 
         HBox lower = new HBox(char_box, pos_box, button_box);
@@ -168,14 +297,23 @@ public class App extends Application {
         VBox total = new VBox(menu_box, upper, middle, lower);
         VBox.setVgrow(middle, Priority.ALWAYS);
 
-        load.setOnAction(e -> {
-            word_count.setText(Integer.toString(i.getAndIncrement()));
-        });
-
         Scene scene = new Scene(total, 1000, 700);
         stage.setTitle("MediaLab Hangman");
         stage.setScene(scene);
         stage.show();
+
+
+        start.setOnAction(e -> {
+            Controller.startAction();
+
+            game.setGame(session.getDictionary());
+            tries.setImage(game.getTries());
+            word.setText(game.getDisplayedWord());
+            possible_answers.setText(game.getPossibleAnswers());
+            points_num.setText("0");
+            success_percent.setText(game.getSuccessPercentage());
+            word_count.setText(game.getAvailableWordCount());
+        });
     }
 
     public static void main(String[] args) {

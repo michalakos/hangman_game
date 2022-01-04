@@ -1,5 +1,10 @@
 package com.example.hangman;
 
+import javafx.scene.image.Image;
+
+import java.io.FileInputStream;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -13,23 +18,55 @@ public class Game {
     // possible_answers contains all the words in the dictionary that could 
     // fit in the answer
     private HashSet<String> possible_answers = new HashSet<>();
-    // probabilites is an array of floats where each row represents a letter
+    private HashSet<Byte> found_positions = new HashSet<>();
+    // probabilities is an array of floats where each row represents a letter
     // of the selected word and each column the count of words in the possible_answers
     // set containing each letter in each position
     private int[][] probabilities;
     // points are the points accumulated during this game
     private int points;
+    // total number of moves executed in current game
+    private byte total_moves;
+    // number of correct moves executed in current game
+    private byte correct_moves;
     // length is the length of the word
     private byte length;
     // tries is the number of mistakes the player can make before losing the game
     private byte tries;
     // victory is true if the game reached its final state and the player won
     private boolean victory;
+    private boolean finished;
 
 
     // constructor
+    public Game () {
+        this.word = "";
+        this.length = 0;
+        this.displayed_word = new char[]{'\u0000'};
+        this.points = 0;
+        this.total_moves = 0;
+        this.correct_moves = 0;
+        this.tries = 5;
+        this.victory = false;
+        this.finished = false;
+    }
+
+
     // TODO: remove prints
-    public Game (String dictionary_id) {
+    public void setGame (String dictionary_id) {
+        this.word = "";
+        this.length = 0;
+        this.displayed_word = new char[]{'\u0000'};
+        this.points = 0;
+        this.total_moves = 0;
+        this.correct_moves = 0;
+        this.tries = 5;
+        this.victory = false;
+        this.finished = false;
+
+        HashSet<String> possible_answers = new HashSet<>();
+        HashSet<Byte> found_positions = new HashSet<>();
+
         // retrieve Dictionary
         String[] dictionary;
         try {
@@ -48,21 +85,11 @@ public class Game {
         // create empty char array displaying found characters
         this.displayed_word = new char[this.word.length()];
 
-        // at game start the player has 0 points
-        this.points = 0;
-
         // save the length of the selected word
         this.length = (byte)this.word.length();
 
-        // the number of tries is 5 for every new game
-        this.tries = 5;
-
-        // initialise victory flag
-        this.victory = false;
-
-        // create probabilites array
+        // create probabilities array
         this.probabilities = new int[this.length][26];
-
 
         // add dictionary words with same length in possible_answers
         // and update probabilities array accordingly
@@ -75,7 +102,7 @@ public class Game {
                 // counter by one in the position it was found
                 for (int i = 0; i < this.length; i++) {
                     c = s.charAt(i);
-                    this.probabilities[i][(int)(c - 'A')]++;
+                    this.probabilities[i][c - 'A']++;
                 }
             }
         }
@@ -84,12 +111,18 @@ public class Game {
         System.out.println(this.word);
         System.out.println(this.length);
         System.out.println(this.possible_answers.toString());
-        for (int i = 0; i < this.probabilities.length; i++) {
+
+        for (int[] integer : this.probabilities) {
             for (int j = 0; j < this.probabilities[0].length; j++) {
-                System.out.print(this.probabilities[i][j] + " ");
+                System.out.print(integer[j] + " ");
             }
             System.out.println("\n");
         }
+    }
+
+
+    public HashSet<Byte> getFoundPositions() {
+        return found_positions;
     }
 
 
@@ -99,17 +132,21 @@ public class Game {
     // returns true is the game reached a final state (win/loss)
     // TODO: remove prints
     public boolean nextMove (char c, byte position) {
+        position--;
         // check if the move is valid
         if (position >= 0 && position < this.length && this.displayed_word[position] == '\u0000') {
+            this.total_moves++;
 
             // correct guess
             if (this.word.charAt(position) == c) {
+                found_positions.add((byte) (position + 1));
+                this.correct_moves++;
 
                 // add character in found characters
                 this.displayed_word[position] = c;
 
-                float probability = this.probabilities[position][(int)(c-'A')];
-                probability /= this.possible_answers.size();
+                float probability = (float) this.probabilities[position][c-'A']
+                                        / (float) this.possible_answers.size();
                 
                 if (probability >= 0.6f) {
                     points += 5;
@@ -129,14 +166,15 @@ public class Game {
                 if (this.word.equals(new String(this.displayed_word))) {
                     System.out.println("Victory");
                     this.victory = true;
-                    return true;
+                    this.finished = true;
                 }
 
                 // debugging prints
                 // correct guess, game continues
-                System.out.println("Found " + c + " in position " + position);
-                System.out.println(this.displayed_word);
-                return false;
+                else {
+                    System.out.println("Found " + c + " in position " + position);
+                    System.out.println(this.displayed_word);
+                }
             }
 
             // wrong guess
@@ -149,12 +187,11 @@ public class Game {
                     System.out.println("Out of tries");
                     System.out.println("Word was " + this.word);
                     this.victory = false;
-                    return true;
+                    this.finished = true;
                 }
                 // wrong guess, game continues
                 else {
                     System.out.println("No " + c + " in position " + position);
-                    return false;
                 }
             }
         }
@@ -162,8 +199,9 @@ public class Game {
         // illegal move - shouldn't happen with gui
         else {
             System.out.println("nextMove illegal arguments" + c + " " + position);
-            return false;
         }
+
+        return this.finished;
     }
 
 
@@ -189,7 +227,7 @@ public class Game {
                     
                     // update probabilities array removing the word
                     for (int j = 0; j < this.length; j++) {
-                        int index = (int)(word.charAt(j) - 'A');
+                        int index = word.charAt(j) - 'A';
                         this.probabilities[j][index]--;
                     }
 
@@ -228,24 +266,21 @@ public class Game {
             int[] probs = this.probabilities[word_char].clone();
 
             // letters contains every character from 'A' to 'Z' 
-            for (int ch = (int)'A'; ch <= (int)'Z'; ch++) {
+            for (int ch = 'A'; ch <= (int)'Z'; ch++) {
                 letters[ch - (int)'A'] = (char)ch;
             }
 
             // override sort function to sort letters array
             // by comparing the number of appearances of each letter 
             // in given position
-            Arrays.sort(letters, new Comparator<Character>() {
-                @Override 
-                public int compare (Character o1, Character o2) {
-                    int index1 = (int) o1 - (int)'A';
-                    int index2 = (int) o2 - (int)'A';
-                    return Integer.compare(probs[index1], probs[index2]);
-                }
+            Arrays.sort(letters, (o1, o2) -> {
+                int index1 = (int) o1 - (int)'A';
+                int index2 = (int) o2 - (int)'A';
+                return Integer.compare(probs[index1], probs[index2]);
             });
 
             // append results to result array
-            // from end to begining of letter array because sorting does it 
+            // from end to beginning of letter array because sorting does it
             // in increasing order
             for (int i = 0; i < 26; i++) {
                 most_probable_chars[word_char][i] = letters[25-i];
@@ -254,5 +289,110 @@ public class Game {
 
         // return result
         return most_probable_chars;
+    }
+
+
+    public String getAvailableWordCount () {
+        return Integer.toString(this.possible_answers.size());
+    }
+
+
+    public String getPoints () {
+        return Integer.toString(this.points);
+    }
+
+
+    public String getWord() {
+        return this.word;
+    }
+
+
+    public int getTotalMoves() {
+        return this.total_moves;
+    }
+
+
+    public byte getLength() {
+        return this.length;
+    }
+
+
+    public String getWinner() {
+        if (this.finished) {
+            return this.victory ? "PLAYER" : "COMPUTER";
+        }
+        else {
+             return "INVALID";
+        }
+    }
+
+
+    public String getSuccessPercentage() {
+        DecimalFormat df = new DecimalFormat("#.#");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        double result = (double) (this.correct_moves * 100) / (double) this.total_moves;
+        return (Double.isNaN(result)) ? "0.0%" : df.format(result) + "%";
+    }
+
+
+    public Image getTries() {
+        final String IMAGE_PATH = "src/main/resources/pictures/stage";
+        try {
+            FileInputStream pic = new FileInputStream(IMAGE_PATH + (5-this.tries) + ".png");
+            return new Image(pic);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    public String getSolution() {
+        this.victory = false;
+        this.finished = true;
+        return this.word;
+    }
+
+
+    public String getDisplayedWord() {
+        StringBuilder sb = new StringBuilder();
+        String s;
+        for (char c : this.displayed_word) {
+            s = (c=='\u0000') ? "_ " : c + " ";
+            sb.append(s);
+        }
+        return sb.toString();
+    }
+
+
+    public String getPossibleAnswers() {
+        System.out.println(this.possible_answers);
+        StringBuilder sb = new StringBuilder();
+        boolean newline = true;
+        char [][] prob_chars = this.getProbChars();
+
+        for (int i = 0; i < prob_chars.length; i++) {
+            sb.append("Position "+ (i+1) + ": ");
+            if (this.displayed_word[i] != '\u0000') {
+                sb.append("-\n");
+                newline = true;
+                continue;
+            }
+
+            for (int j = 0; j < prob_chars[0].length; j++) {
+                if (this.probabilities[i][prob_chars[i][j]-'A'] > 0) {
+                    if (!newline) {
+                        sb.append(", ");
+                    }
+                    sb.append(prob_chars[i][j]);
+                    newline = false;
+                }
+            }
+            sb.append("\n");
+            newline = true;
+        }
+
+        return sb.toString();
     }
 }

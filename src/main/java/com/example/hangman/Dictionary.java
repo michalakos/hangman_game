@@ -50,7 +50,27 @@ public class Dictionary {
             InputStream is = url.openStream();
             JsonReader rdr = Json.createReader(is)) {
                 JsonObject obj = rdr.readObject();
-                description = obj.getString("description");
+                byte counter = 0;
+                description = "";
+                try {
+                    description = obj.getString("description");
+                }
+                catch (Exception e) {
+                    counter++;
+                }
+                try {
+                    obj = obj.getJsonObject("description");
+                    description = obj.getString("value");
+                }
+                catch (Exception e) {
+                    counter++;
+                }
+                if (counter == 2) {
+                    System.err.println("This work does not contain 'description' field");
+                    return;
+                }
+                description = description.replace("-", " ");
+//                description = obj.getString("description");
             }
         catch(IOException e) {
             e.printStackTrace();
