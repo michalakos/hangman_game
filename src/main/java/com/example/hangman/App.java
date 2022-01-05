@@ -17,12 +17,9 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class App extends Application {
-    private static String DICT_PATH = "medialab/hangman_DICTIONARY-";
+    private static final String DICT_PATH = "medialab/hangman_DICTIONARY-";
     @Override
     public void start(Stage stage) throws IOException {
         Session session = new Session();
@@ -151,7 +148,6 @@ public class App extends Application {
             dialog.setScene(popup_scene);
             dialog.setTitle("Create a dictionary");
             dialog.show();
-            Controller.createAction();
         });
 
         MenuItem exit = new MenuItem("Exit");
@@ -342,7 +338,7 @@ public class App extends Application {
             word_count.setText(game.getAvailableWordCount());
 
             if (game_finished) {
-                String msg = (game.getWinner() == "PLAYER") ? "Congratulations!" : "Better luck next time";
+                String msg = (game.getWinner().equals("PLAYER")) ? "Congratulations!" : "Better luck next time";
                 System.out.println(msg);
                 session.setRounds(game);
             }
@@ -362,7 +358,6 @@ public class App extends Application {
 
 
         start.setOnAction(e -> {
-            Controller.startAction();
 
             game.setGame(session.getDictionary());
             tries.setImage(game.getTries());

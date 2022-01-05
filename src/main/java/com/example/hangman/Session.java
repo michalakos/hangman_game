@@ -14,14 +14,10 @@ import java.util.Scanner;
 
 public class Session {
     private String dictionary_id;
-    final String SAVE_PATH = "src/main/resources/com/example/hangman/savegame.txt";
+    private final static String SAVE_PATH = "src/main/resources/com/example/hangman/savegame.txt";
 
 
     public Session () {
-    }
-
-    public Session (String dictionary_id) {
-        this.dictionary_id = dictionary_id;
     }
 
     public void setDictionary (String dictionary_id) {

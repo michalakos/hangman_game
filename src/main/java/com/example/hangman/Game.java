@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -18,7 +17,7 @@ public class Game {
     // possible_answers contains all the words in the dictionary that could 
     // fit in the answer
     private HashSet<String> possible_answers = new HashSet<>();
-    private final HashSet<Byte> found_positions = new HashSet<>();
+    private HashSet<Byte> found_positions = new HashSet<>();
     // probabilities is an array of floats where each row represents a letter
     // of the selected word and each column the count of words in the possible_answers
     // set containing each letter in each position
@@ -64,8 +63,8 @@ public class Game {
         this.victory = false;
         this.finished = false;
 
-        HashSet<String> possible_answers = new HashSet<>();
-        HashSet<Byte> found_positions = new HashSet<>();
+        this.possible_answers = new HashSet<>();
+        this.found_positions = new HashSet<>();
 
         // retrieve Dictionary
         String[] dictionary;
@@ -356,11 +355,6 @@ public class Game {
 
 
     public String getSolution() {
-        for (int[] int_arr : this.probabilities) {
-            for (int i : int_arr) {
-                i = 0;
-            }
-        }
         this.updateProbabilities();
         this.tries = 0;
         this.points = 0;
@@ -392,10 +386,9 @@ public class Game {
         char [][] prob_chars = this.getProbChars();
 
         for (int i = 0; i < prob_chars.length; i++) {
-            sb.append("Position "+ (i+1) + ": ");
+            sb.append(String.format("Position %d: ", i+1));
             if (this.displayed_word[i] != '\u0000') {
                 sb.append("-\n");
-                newline = true;
                 continue;
             }
 

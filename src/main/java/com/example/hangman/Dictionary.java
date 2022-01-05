@@ -18,7 +18,7 @@ import javax.json.*;
 
 public class Dictionary {
     // PATH must be starting from working directory to 'medialab' folder
-    private static String PATH = "medialab/";
+    private static final String PATH = "medialab/";
 
     /**
      * Creates a text file (dictionary) containing the words in the 
@@ -114,8 +114,6 @@ public class Dictionary {
         catch (IOException e){
             e.printStackTrace();
         }
-
-        return;
     }
 
 
