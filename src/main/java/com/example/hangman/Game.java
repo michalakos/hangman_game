@@ -18,7 +18,7 @@ public class Game {
     // possible_answers contains all the words in the dictionary that could 
     // fit in the answer
     private HashSet<String> possible_answers = new HashSet<>();
-    private HashSet<Byte> found_positions = new HashSet<>();
+    private final HashSet<Byte> found_positions = new HashSet<>();
     // probabilities is an array of floats where each row represents a letter
     // of the selected word and each column the count of words in the possible_answers
     // set containing each letter in each position
@@ -46,7 +46,7 @@ public class Game {
         this.points = 0;
         this.total_moves = 0;
         this.correct_moves = 0;
-        this.tries = 5;
+        this.tries = 6;
         this.victory = false;
         this.finished = false;
     }
@@ -60,7 +60,7 @@ public class Game {
         this.points = 0;
         this.total_moves = 0;
         this.correct_moves = 0;
-        this.tries = 5;
+        this.tries = 6;
         this.victory = false;
         this.finished = false;
 
@@ -180,6 +180,7 @@ public class Game {
             // wrong guess
             else {
                 points -= Math.min(this.points, 15);
+                System.out.println(this.tries-1);
 
                 // lost game
                 if (--this.tries == 0) {
@@ -200,6 +201,7 @@ public class Game {
         else {
             System.out.println("nextMove illegal arguments" + c + " " + position);
         }
+        this.updateProbabilities();
 
         return this.finished;
     }
@@ -317,6 +319,11 @@ public class Game {
     }
 
 
+    public boolean getFinished() {
+        return this.finished;
+    }
+
+
     public String getWinner() {
         if (this.finished) {
             return this.victory ? "PLAYER" : "COMPUTER";
@@ -338,7 +345,7 @@ public class Game {
     public Image getTries() {
         final String IMAGE_PATH = "src/main/resources/pictures/stage";
         try {
-            FileInputStream pic = new FileInputStream(IMAGE_PATH + (5-this.tries) + ".png");
+            FileInputStream pic = new FileInputStream(IMAGE_PATH + (6-this.tries) + ".png");
             return new Image(pic);
         }
         catch (Exception e) {
@@ -349,9 +356,21 @@ public class Game {
 
 
     public String getSolution() {
+        for (int[] int_arr : this.probabilities) {
+            for (int i : int_arr) {
+                i = 0;
+            }
+        }
+        this.updateProbabilities();
+        this.tries = 0;
+        this.points = 0;
         this.victory = false;
         this.finished = true;
-        return this.word;
+        this.possible_answers = new HashSet<>();
+        for (int i = 0; i < this.length; i++) {
+            this.displayed_word[i] = this.word.charAt(i);
+        }
+        return this.getDisplayedWord();
     }
 
 

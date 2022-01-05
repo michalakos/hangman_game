@@ -71,7 +71,7 @@ public class Session {
     }
 
 
-    public String getRounds () {
+    public String[] getRounds () {
         Path relative_path = Paths.get(SAVE_PATH);
         Path absolute_path = relative_path.toAbsolutePath();
         String filename = absolute_path.toString();
@@ -91,22 +91,19 @@ public class Session {
         String[] save = file_contents.toArray(new String[0]);
 
         int entries = Integer.parseInt(save[0]);
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb1 = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
+        StringBuilder sb3 = new StringBuilder();
         List<String> temp_list;
 
         for (int i = 0; i < entries; i++) {
             temp = save[i+1];
             temp_list = new ArrayList<>(Arrays.asList(temp.split(",")));
-            sb.append("Word=");
-            sb.append(temp_list.get(0));
-            sb.append(", Tries=");
-            sb.append(temp_list.get(1));
-            sb.append(", Winner=");
-            sb.append(temp_list.get(2));
-            sb.append("\n");
+            sb1.append(String.format("Word: %-19s\n", temp_list.get(0)));
+            sb2.append(String.format("Tries: %-4s\n", temp_list.get(1)));
+            sb3.append(String.format("Winner: %-10s\n", temp_list.get(2)));
         }
-
-        return sb.toString();
+        return new String[]{sb1.toString(), sb2.toString(), sb3.toString()};
     }
 
 
@@ -140,7 +137,6 @@ public class Session {
             sb.append(entries);
         }
         sb.append("\n");
-        System.out.println("sb till now: " + sb);
         sb.append(game.getWord());
         sb.append(",");
         sb.append(game.getTotalMoves());

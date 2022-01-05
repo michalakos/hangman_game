@@ -170,18 +170,52 @@ public class App extends Application {
 
         MenuItem dictionary = new MenuItem("Dictionary");
         dictionary.setOnAction(e -> {
-            Controller.dictionaryAction();
+            final Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stage);
+
+            Label dict_label = new Label();
+            dict_label.setText(session.getDictionaryStats());
+            HBox d_box = new HBox(dict_label);
+            d_box.setPadding(new Insets(10));
+            d_box.setAlignment(Pos.CENTER);
+
+            VBox popup = new VBox(d_box);
+            VBox.setVgrow(d_box, Priority.ALWAYS);
+            Scene popup_scene = new Scene(popup, 500, 200);
+            dialog.setScene(popup_scene);
+            dialog.setTitle("Dictionary information");
+            dialog.show();
         });
 
         MenuItem rounds = new MenuItem("Rounds");
         rounds.setOnAction(e -> {
-            Controller.roundsAction();
+            final Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(stage);
+
+            Label rounds_word = new Label();
+            Label rounds_tries = new Label();
+            Label rounds_winner = new Label();
+
+            String[] rounds_strings = session.getRounds();
+            rounds_word.setText(rounds_strings[0]);
+            rounds_tries.setText(rounds_strings[1]);
+            rounds_winner.setText(rounds_strings[2]);
+
+            HBox rounds_box = new HBox(rounds_word, rounds_tries, rounds_winner);
+            rounds_box.setPadding(new Insets(10));
+            rounds_box.setAlignment(Pos.CENTER);
+
+            VBox popup = new VBox(rounds_box);
+            VBox.setVgrow(rounds_box, Priority.ALWAYS);
+            Scene popup_scene = new Scene(popup, 500, 200);
+            dialog.setScene(popup_scene);
+            dialog.setTitle("Previous games");
+            dialog.show();
         });
 
         MenuItem solution = new MenuItem("Solution");
-        solution.setOnAction(e -> {
-            Controller.solutionAction();
-        });
 
         details.getItems().add(dictionary);
         details.getItems().add(rounds);
@@ -254,6 +288,25 @@ public class App extends Application {
         HBox button_box = new HBox(button);
         button_box.setPadding(new Insets(40));
 
+        solution.setOnAction(e -> {
+            if (game.getFinished()) {
+                System.err.println("Game has finished");
+                return;
+            }
+            char_select.clear();
+            pos_select.clear();
+
+            String game_word = game.getSolution();
+            tries.setImage(game.getTries());
+
+            word.setText(game_word);
+            possible_answers.setText(game.getPossibleAnswers());
+            points_num.setText(game.getPoints());
+            success_percent.setText(game.getSuccessPercentage());
+            word_count.setText(game.getAvailableWordCount());
+            session.setRounds(game);
+        });
+
         button.setOnAction(action -> {
             char char_in = char_select.getText().charAt(0);
             int pos;
@@ -273,6 +326,11 @@ public class App extends Application {
             }
             char_select.clear();
             pos_select.clear();
+            char_select.requestFocus();
+            if (game.getFinished()) {
+                System.err.println("Game has finished");
+                return;
+            }
             boolean game_finished = game.nextMove(char_in, pos_in);
             game.updateProbabilities();
             tries.setImage(game.getTries());
