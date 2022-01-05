@@ -53,8 +53,11 @@ public class App extends Application {
 
             HBox d_box = new HBox(d_label_box, d_input_box);
             Label message = new Label();
+            HBox message_box = new HBox(message);
+            message_box.setPadding(new Insets(10));
+            message_box.setAlignment(Pos.CENTER);
 
-            VBox input = new VBox(d_box, message);
+            VBox input = new VBox(d_box, message_box);
 
             Button new_dict_button = new Button();
             new_dict_button.setText("Load");
@@ -68,9 +71,14 @@ public class App extends Application {
                     String dict_id = dict_num.getText();
                     File file = new File(DICT_PATH + dict_id + ".txt");
                     if (file.exists()) {
-                        session.setDictionary(dict_id);
-                        Stage st = (Stage) new_dict_button.getScene().getWindow();
-                        st.close();
+                        boolean load_flag = session.setDictionary(dict_id);
+                        if (load_flag) {
+                            Stage st = (Stage) new_dict_button.getScene().getWindow();
+                            st.close();
+                        }
+                        else {
+                            message.setText("The dictionary does not fit the criteria");
+                        }
                     }
                     else {
                         message.setText("This dictionary does not exist");

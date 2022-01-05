@@ -71,7 +71,9 @@ public class Game {
         try {
             dictionary = Dictionary.load(dictionary_id);
         }
-        catch (Exception e) {
+        catch (Exceptions.UnbalancedException | Exceptions.UndersizeException | Exceptions.InvalidRangeException |
+            Exceptions.InvalidCountException e) {
+            System.err.println("Error loading dictionary with id: " + dictionary_id);
             e.printStackTrace();
             return;
         }

@@ -20,8 +20,18 @@ public class Session {
     public Session () {
     }
 
-    public void setDictionary (String dictionary_id) {
+    public boolean setDictionary (String dictionary_id) {
         this.dictionary_id = dictionary_id;
+        try {
+            String[] dictionary = Dictionary.load(dictionary_id);
+            return true;
+        }
+        catch (Exceptions.UnbalancedException | Exceptions.UndersizeException | Exceptions.InvalidRangeException |
+                Exceptions.InvalidCountException e) {
+            System.err.println("Error loading dictionary with id: " + dictionary_id);
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public String getDictionary() {
