@@ -323,10 +323,12 @@ public class App extends Application {
             byte pos_in = (byte) pos;
             if (char_select.getText().length() > 1 || char_in > 'Z' || char_in < 'A') {
                 System.err.println("Input must be a single character from A to Z");
+                return;
             }
             else if (pos_in > game.getLength() || pos_in < 1 || game.getFoundPositions().contains(pos_in)) {
                 System.err.println("Position must be a number designating a missing character where the first " +
                         "character of the word has position 1");
+                return;
             }
             char_select.clear();
             pos_select.clear();
