@@ -35,6 +35,9 @@ public class Game {
     // victory is true if the game reached its final state and the player won
     private boolean victory;
     private boolean finished;
+    private boolean success;
+    private byte last_pos;
+    private char last_char;
 
 
     // constructor
@@ -136,12 +139,15 @@ public class Game {
         position--;
         // check if the move is valid
         if (position >= 0 && position < this.length && this.displayed_word[position] == '\u0000') {
+            this.last_char =c;
+            this.last_pos = position;
             this.total_moves++;
 
             // correct guess
             if (this.word.charAt(position) == c) {
                 found_positions.add((byte) (position + 1));
                 this.correct_moves++;
+                this.success = true;
 
                 // add character in found characters
                 this.displayed_word[position] = c;
@@ -180,6 +186,7 @@ public class Game {
 
             // wrong guess
             else {
+                this.success = false;
                 points -= Math.min(this.points, 15);
                 System.out.println(this.tries-1);
 
@@ -226,7 +233,8 @@ public class Game {
             for (int i = 0; i < this.length; i++) {
 
                 // the word is no longer a possible answer
-                if (this.displayed_word[i] != word.charAt(i) && this.displayed_word[i] != '\u0000') {
+                if ((this.displayed_word[i] != word.charAt(i) && this.displayed_word[i] != '\u0000') ||
+                        (this.last_char == word.charAt(this.last_pos) && !this.success)){
                     
                     // update probabilities array removing the word
                     for (int j = 0; j < this.length; j++) {

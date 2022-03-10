@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class App extends Application {
     private static final String DICT_PATH = "medialab/hangman_DICTIONARY-";
@@ -36,9 +38,34 @@ public class App extends Application {
 
         MenuItem load = new MenuItem("Load");
         load.setOnAction(e -> {
+            File folder = new File("medialab/");
+            File[] listOfFiles = folder.listFiles();
+            List<String> availableDictionaries = new ArrayList<>();
+
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    if (file.getName().startsWith("hangman_DICTIONARY-")) {
+                        availableDictionaries.add(file.getName()
+                                .replace("hangman_DICTIONARY-", "")
+                                .replace(".txt", ""));
+                    }
+                }
+            }
+            java.util.Collections.sort(availableDictionaries);
+            System.out.println(availableDictionaries);
+
+            String availableDictsString = String.join(", ", availableDictionaries);
+            System.out.println(availableDictsString);
+
             final Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initOwner(stage);
+
+            Label avail_dicts = new Label();
+            avail_dicts.setText("Available Dictionaries:\n"+availableDictsString);
+            HBox avail_dicts_box = new HBox(avail_dicts);
+            avail_dicts_box.setPadding(new Insets(20));
+            avail_dicts_box.setAlignment(Pos.CENTER_LEFT);
 
             Label dict_label = new Label();
             dict_label.setText("DICTIONARY_ID: ");
@@ -57,7 +84,7 @@ public class App extends Application {
             message_box.setPadding(new Insets(10));
             message_box.setAlignment(Pos.CENTER);
 
-            VBox input = new VBox(d_box, message_box);
+            VBox input = new VBox(avail_dicts_box, d_box, message_box);
 
             Button new_dict_button = new Button();
             new_dict_button.setText("Load");
@@ -293,22 +320,36 @@ public class App extends Application {
         button_box.setPadding(new Insets(40));
 
         solution.setOnAction(e -> {
-            if (game.getFinished()) {
-                System.err.println("Game has finished");
-                return;
-            }
             char_select.clear();
             pos_select.clear();
 
-            String game_word = game.getSolution();
-            tries.setImage(game.getTries());
+            if (game.getFinished() || game.getWord()=="") {
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                Label message = new Label("No active game");
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
 
-            word.setText(game_word);
-            possible_answers.setText(game.getPossibleAnswers());
-            points_num.setText(game.getPoints());
-            success_percent.setText(game.getSuccessPercentage());
-            word_count.setText(game.getAvailableWordCount());
-            session.setRounds(game);
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 500, 200);
+                dialog.setScene(popup_scene);
+                dialog.setTitle("Previous games");
+                dialog.show();
+            }
+            else {
+                String game_word = game.getSolution();
+                tries.setImage(game.getTries());
+
+                word.setText(game_word);
+                possible_answers.setText(game.getPossibleAnswers());
+                points_num.setText(game.getPoints());
+                success_percent.setText(game.getSuccessPercentage());
+                word_count.setText(game.getAvailableWordCount());
+                session.setRounds(game);
+            }
         });
 
         button.setOnAction(action -> {
@@ -321,20 +362,61 @@ public class App extends Application {
                 pos = 0;
             }
             byte pos_in = (byte) pos;
-            if (char_select.getText().length() > 1 || char_in > 'Z' || char_in < 'A') {
-                System.err.println("Input must be a single character from A to Z");
-                return;
-            }
-            else if (pos_in > game.getLength() || pos_in < 1 || game.getFoundPositions().contains(pos_in)) {
-                System.err.println("Position must be a number designating a missing character where the first " +
-                        "character of the word has position 1");
-                return;
-            }
+
             char_select.clear();
             pos_select.clear();
             char_select.requestFocus();
+
+            if (char_select.getText().length() > 1 || char_in > 'Z' || char_in < 'A') {
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                Label message = new Label("Input must be a single character from A to Z");
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
+
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 400, 150);
+                dialog.setScene(popup_scene);
+                dialog.setTitle("Invalid input");
+                dialog.show();
+                return;
+            }
+            else if (pos_in > game.getLength() || pos_in < 1 || game.getFoundPositions().contains(pos_in)) {
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                Label message = new Label("Position must match a missing character\n"+
+                        "where the first character of the word\nhas position 1");
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
+
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 400, 150);
+                dialog.setScene(popup_scene);
+                dialog.setTitle("Invalid input");
+                dialog.show();
+                return;
+            }
             if (game.getFinished()) {
-                System.err.println("Game has finished");
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                Label message = new Label("Game has finished");
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
+
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 400, 150);
+                dialog.setScene(popup_scene);
+                dialog.setTitle("Game ended");
+                dialog.show();
                 return;
             }
             boolean game_finished = game.nextMove(char_in, pos_in);
@@ -348,9 +430,25 @@ public class App extends Application {
             word_count.setText(game.getAvailableWordCount());
 
             if (game_finished) {
-                String msg = (game.getWinner().equals("PLAYER")) ? "Congratulations!" : "Better luck next time";
-                System.out.println(msg);
                 session.setRounds(game);
+
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                String msg = (game.getWinner().equals("PLAYER")) ? "Congratulations!" : "Better luck next time";
+                String ttl = (game.getWinner().equals("PLAYER")) ? "Victory" : "Defeat";
+                Label message = new Label(msg);
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
+
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 400, 150);
+                dialog.setScene(popup_scene);
+                dialog.setTitle(ttl);
+                dialog.show();
+                return;
             }
         });
 
@@ -368,14 +466,36 @@ public class App extends Application {
 
 
         start.setOnAction(e -> {
+            try {
+                game.setGame(session.getDictionary());
+                tries.setImage(game.getTries());
+                word.setText(game.getDisplayedWord());
+                possible_answers.setText(game.getPossibleAnswers());
+                points_num.setText("0");
+                success_percent.setText(game.getSuccessPercentage());
+                word_count.setText(game.getAvailableWordCount());
+            }
+            catch (Exception exc) {
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(stage);
+                String msg = "Error creating game\n"+
+                        "Load a dictionary first";
+                Label message = new Label(msg);
+                HBox message_box = new HBox(message);
+                message_box.setPadding(new Insets(20));
+                message_box.setAlignment(Pos.CENTER);
 
-            game.setGame(session.getDictionary());
-            tries.setImage(game.getTries());
-            word.setText(game.getDisplayedWord());
-            possible_answers.setText(game.getPossibleAnswers());
-            points_num.setText("0");
-            success_percent.setText(game.getSuccessPercentage());
-            word_count.setText(game.getAvailableWordCount());
+                VBox popup = new VBox(message_box);
+                VBox.setVgrow(message_box, Priority.ALWAYS);
+                Scene popup_scene = new Scene(popup, 400, 150);
+                dialog.setScene(popup_scene);
+                dialog.setTitle("Error");
+                dialog.show();
+
+                exc.printStackTrace();
+                return;
+            }
         });
     }
 
