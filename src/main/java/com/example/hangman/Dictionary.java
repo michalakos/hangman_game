@@ -9,22 +9,23 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-
 import javax.json.*;
 
+/**
+ * class providing methods to create and load dictionaries
+ */
 public class Dictionary {
-    // PATH must be starting from working directory to 'medialab' folder
+    // path of dictionaries
     private static final String PATH = "medialab/";
 
     /**
-     * Creates a text file (dictionary) containing the words in the 
-     * value field of the description field of the json object returned 
+     * Creates a text file (dictionary) in PATH containing the words in the
+     * value field (if it exists) of the description field of the json object returned
      * from the OpenLibrary API call.
-     * 
-     * @param dictionary_id     the id of the file to which the dictionary
-     *                          will be saved in the local filesystem
-     * @param open_library_id   the id which specifies a book in the 
-     *                          OpenLibrary website
+     *
+     * @param dictionary_id id of the created dictionary (arbitrary)
+     * @param open_library_id id of book in OpenLibrary
+     * @throws Exception creation of dictionary failed
      */
     public static void add (String dictionary_id, String open_library_id) throws Exception {
 
@@ -111,17 +112,18 @@ public class Dictionary {
         }
     }
 
-
-    
-    /** 
-     * Returns String with the contents of the file specified by dictionary_id
-     * 
-     * @param dictionary_id String specifying file containing dictionary previously
-     *                      created by add method
-     * @return String[]     String array with the contents of specified file with words 
-     *                      separated by newlines
+    /**
+     * Loads an existing dictionary from PATH given its id and returns its contents
+     *
+     * @param dictionary_id id of existing dictionary
+     * @return dictionary words
+     * @throws Exceptions.InvalidCountException duplicate word in dictionary
+     * @throws Exceptions.InvalidRangeException word with less than six letters in dictionary
+     * @throws Exceptions.UnbalancedException dictionary consists of more than 80% of small words (fewer than nine letters)
+     * @throws Exceptions.UndersizeException dictionary contains fewer than 20 words
+     * @throws FileNotFoundException no dictionary matching given id
      */
-    public static String[] load (String dictionary_id) 
+    public static String[] load (String dictionary_id)
     throws Exceptions.InvalidCountException, Exceptions.InvalidRangeException, 
     Exceptions.UnbalancedException, Exceptions.UndersizeException, FileNotFoundException {
 
@@ -161,6 +163,8 @@ public class Dictionary {
                 big_words++;
             }
         }
+
+        // check if dictionary complies with all restraints
 
         if (words.size() != dictionary.length) {
             throw new Exceptions.InvalidCountException(

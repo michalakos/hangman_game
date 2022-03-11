@@ -1,7 +1,6 @@
 package com.example.hangman;
 
 import javafx.scene.image.Image;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.math.RoundingMode;
@@ -10,38 +9,60 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * contains information about active game
+ */
 public class Game {
-    // word variable contains the randomly selected word from current dictionary
+    // game's target word
     private String word;
-    // displayed_word is the letters of the word that the player has found
+
+    // word appearing in GUI
     private char[] displayed_word;
-    // possible_answers contains all the words in the dictionary that could 
-    // fit in the answer
+
+    // dictionary words fitting current state of word
     private HashSet<String> possible_answers = new HashSet<>();
+
+    // positions where missing letters are found
     private HashSet<Byte> found_positions = new HashSet<>();
-    // probabilities is an array of floats where each row represents a letter
-    // of the selected word and each column the count of words in the possible_answers
-    // set containing each letter in each position
+
+    // each row represents a letter of the selected word
+    // each column the count of possible answers containing every letter in the alphabet (first item is 'A', last 'Z')
     private int[][] probabilities;
-    // points are the points accumulated during this game
+
+    // points accumulated in this game
     private int points;
+
     // total number of moves executed in current game
     private byte total_moves;
-    // number of correct moves executed in current game
+
+    // number of successful moves in current game
     private byte correct_moves;
-    // length is the length of the word
+
+    // length of target word
     private byte length;
-    // tries is the number of mistakes the player can make before losing the game
+
+    // remaining wrong moves before loss
     private byte tries;
-    // victory is true if the game reached its final state and the player won
-    private boolean victory;
+
+    // game is finished
     private boolean finished;
+
+    // player won the game
+    private boolean victory;
+
+    // last move was successful
     private boolean success;
+
+    // position of last move
     private byte last_pos;
+
+    // letter of last move
     private char last_char;
 
 
-    // constructor
+    /**
+     * constructor
+     */
     public Game () {
         this.word = "";
         this.length = 0;
@@ -55,6 +76,11 @@ public class Game {
     }
 
 
+    /**
+     * reset game state
+     * @param dictionary_id id of dictionary file used in game
+     * @throws Exception failed to load dictionary
+     */
     public void setGame (String dictionary_id) throws Exception{
         this.word = "";
         this.length = 0;
@@ -111,15 +137,22 @@ public class Game {
     }
 
 
+    /**
+     * @return positions of characters successfully found
+     */
     public HashSet<Byte> getFoundPositions() {
         return found_positions;
     }
 
 
-    // receives a character and the position to put it
-    // inserts character into position and increases points if correct guess
-    // decrements tries by one and decreases points if wrong guess
-    // returns true is the game reached a final state (win/loss)
+    /**
+     * try letter in position
+     * if successful insert letter and increase points
+     * if unsuccessful reduce number of tries left before loss by one and decrease points
+     * @param c letter given by player
+     * @param position position in which to try letter
+     * @return game still in session
+     */
     public boolean nextMove (char c, byte position) {
         position--;
         // check if the move is valid
@@ -139,7 +172,8 @@ public class Game {
 
                 float probability = (float) this.probabilities[position][c-'A']
                                         / (float) this.possible_answers.size();
-                
+
+                // increase points based on probability of letter in current position
                 if (probability >= 0.6f) {
                     points += 5;
                 }
@@ -154,7 +188,7 @@ public class Game {
                 }
 
 
-                // the player found the word
+                // victory
                 if (this.word.equals(new String(this.displayed_word))) {
                     this.victory = true;
                     this.finished = true;
@@ -166,7 +200,7 @@ public class Game {
                 this.success = false;
                 points -= Math.min(this.points, 15);
 
-                // lost game
+                // defeat
                 if (--this.tries == 0) {
                     this.victory = false;
                     this.finished = true;
@@ -184,8 +218,10 @@ public class Game {
     }
 
 
-    // find updated probabilities after player move
-    // should be called after every nextMove()
+    /**
+     * update possible answers
+     * called after every nextMove()
+     */
     public void updateProbabilities() {
         // flag to mark removed words
         boolean removed;
@@ -230,8 +266,10 @@ public class Game {
     }
 
 
-    // get most probable characters for each position
-    // TODO: also return numeric probabilities
+    /**
+     * @return probability matrix where each row represents the target word's positions and each column every letter
+     * from A to Z, where the value is the number of possible answers having the letter in this position
+     */
     public char[][] getProbChars () {
         // character array to return values
         char[][] most_probable_chars = new char[this.length][26];
@@ -272,46 +310,64 @@ public class Game {
     }
 
 
+    /**
+     * @return number of possible answers in dictionary
+     */
     public String getAvailableWordCount () {
         return Integer.toString(this.possible_answers.size());
     }
 
-
+    /**
+     * @return player's points
+     */
     public String getPoints () {
         return Integer.toString(this.points);
     }
 
-
+    /**
+     * @return target word
+     */
     public String getWord() {
         return this.word;
     }
 
-
+    /**
+     * @return total moves made in game
+     */
     public int getTotalMoves() {
         return this.total_moves;
     }
 
-
+    /**
+     * @return length of target word
+     */
     public byte getLength() {
         return this.length;
     }
 
-
+    /**
+     * @return game is finished
+     */
     public boolean getFinished() {
         return this.finished;
     }
 
-
+    /**
+     * @return "PLAYER" if player won or "COMPUTER" otherwise
+     */
     public String getWinner() {
         if (this.finished) {
             return this.victory ? "PLAYER" : "COMPUTER";
         }
+        // sanity check
         else {
              return "INVALID";
         }
     }
 
-
+    /**
+     * @return percentage of successful moves
+     */
     public String getSuccessPercentage() {
         DecimalFormat df = new DecimalFormat("#.#");
         df.setRoundingMode(RoundingMode.HALF_UP);
@@ -319,7 +375,9 @@ public class Game {
         return (Double.isNaN(result)) ? "0.0%" : df.format(result) + "%";
     }
 
-
+    /**
+     * @return image representing remaining unsuccessful moves
+     */
     public Image getTries() {
         final String IMAGE_PATH = "src/main/resources/pictures/stage";
         try {
@@ -333,7 +391,10 @@ public class Game {
         }
     }
 
-
+    /**
+     * reset game state and return missing word
+     * @return target word
+     */
     public String getSolution() {
         this.updateProbabilities();
         this.tries = 0;
@@ -347,10 +408,13 @@ public class Game {
         return this.getDisplayedWord();
     }
 
-
+    /**
+     * @return string representing state of target word where '_' represents a missing letter
+     */
     public String getDisplayedWord() {
         StringBuilder sb = new StringBuilder();
         String s;
+        // '\u0000' means letter not yet found
         for (char c : this.displayed_word) {
             s = (c=='\u0000') ? "_ " : c + " ";
             sb.append(s);
@@ -358,12 +422,15 @@ public class Game {
         return sb.toString();
     }
 
-
+    /**
+     * @return dictionary words fitting in current state of missing word
+     */
     public String getPossibleAnswers() {
         StringBuilder sb = new StringBuilder();
         boolean newline = true;
         char [][] prob_chars = this.getProbChars();
 
+        // get list of possible letters for each of the positions containing a missing letter
         for (int i = 0; i < prob_chars.length; i++) {
             sb.append(String.format("Position %d: ", i+1));
             if (this.displayed_word[i] != '\u0000') {
