@@ -1,6 +1,7 @@
 package com.example.hangman;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.RoundingMode;
@@ -27,9 +28,8 @@ public class Session {
             return true;
         }
         catch (Exceptions.UnbalancedException | Exceptions.UndersizeException | Exceptions.InvalidRangeException |
-                Exceptions.InvalidCountException e) {
+                Exceptions.InvalidCountException | FileNotFoundException e) {
             System.err.println("Error loading dictionary with id: " + dictionary_id);
-            e.printStackTrace();
             return false;
         }
     }
@@ -71,8 +71,7 @@ public class Session {
 
         }
         catch (Exception e) {
-            e.printStackTrace();
-            return "";
+            return "No active dictionary found";
         }
     }
 
@@ -91,6 +90,7 @@ public class Session {
             }
         }
         catch (IOException e) {
+            System.err.println("Session.getRounds() error");
             e.printStackTrace();
         }
 
@@ -127,6 +127,7 @@ public class Session {
             }
         }
         catch (IOException e) {
+            System.err.println("Session.setRounds() error");
             e.printStackTrace();
         }
 
@@ -159,9 +160,8 @@ public class Session {
             pw.print(sb);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("PrintWriter error in Session.setRounds()");
         }
-        System.out.println(sb);
     }
 
 }

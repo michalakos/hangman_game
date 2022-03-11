@@ -52,10 +52,8 @@ public class App extends Application {
                 }
             }
             java.util.Collections.sort(availableDictionaries);
-            System.out.println(availableDictionaries);
 
             String availableDictsString = String.join(", ", availableDictionaries);
-            System.out.println(availableDictsString);
 
             final Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
@@ -155,7 +153,12 @@ public class App extends Application {
 
             HBox open_lib = new HBox(ol_label_box, ol_input_box);
 
-            VBox input = new VBox(dict, open_lib);
+            Label msg = new Label();
+            HBox msgbox = new HBox(msg);
+            msgbox.setPadding(new Insets(10));
+            msgbox.setAlignment(Pos.CENTER);
+
+            VBox input = new VBox(dict, open_lib, msgbox);
 
             Button new_dict_button = new Button();
             new_dict_button.setText("Create");
@@ -168,14 +171,12 @@ public class App extends Application {
                 try {
                     String dict_id = dict_num.getText();
                     String open_lib_id = open_lib_num.getText();
-                    System.out.println(dict_id + open_lib_id);
                     Dictionary.add(dict_id, open_lib_id);
+                    msg.setText("Dictionary created successfully");
                 }
                 catch (Exception exc) {
-                    exc.printStackTrace();
+                    msg.setText("Couldn't create dictionary");
                 }
-                Stage st = (Stage) new_dict_button.getScene().getWindow();
-                st.close();
             });
             VBox popup = new VBox(input, button);
             VBox.setVgrow(input, Priority.ALWAYS);
@@ -323,7 +324,7 @@ public class App extends Application {
             char_select.clear();
             pos_select.clear();
 
-            if (game.getFinished() || game.getWord()=="") {
+            if (game.getFinished() || game.getWord().equals("")) {
                 final Stage dialog = new Stage();
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 dialog.initOwner(stage);
@@ -448,7 +449,6 @@ public class App extends Application {
                 dialog.setScene(popup_scene);
                 dialog.setTitle(ttl);
                 dialog.show();
-                return;
             }
         });
 
@@ -492,9 +492,6 @@ public class App extends Application {
                 dialog.setScene(popup_scene);
                 dialog.setTitle("Error");
                 dialog.show();
-
-                exc.printStackTrace();
-                return;
             }
         });
     }

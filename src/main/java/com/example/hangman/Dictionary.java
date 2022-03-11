@@ -1,10 +1,6 @@
 package com.example.hangman;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -30,7 +26,7 @@ public class Dictionary {
      * @param open_library_id   the id which specifies a book in the 
      *                          OpenLibrary website
      */
-    public static void add (String dictionary_id, String open_library_id) {
+    public static void add (String dictionary_id, String open_library_id) throws Exception {
 
         // set the url containing the requested book's json object
         URL url;
@@ -39,8 +35,8 @@ public class Dictionary {
             url = new URL(u);
         }
         catch (MalformedURLException e){
-            e.printStackTrace();
-            return;
+            System.err.println("Dictionary.add(): no url match");
+            throw e;
         }
 
         // create json reader and read "description" value
@@ -70,11 +66,10 @@ public class Dictionary {
                     return;
                 }
                 description = description.replace("-", " ");
-//                description = obj.getString("description");
             }
         catch(IOException e) {
-            e.printStackTrace();
-            return;
+            System.err.println("Dictionary.add(): error creating dictionary");
+            throw e;
         }
 
         // scan string containing description
@@ -128,7 +123,7 @@ public class Dictionary {
      */
     public static String[] load (String dictionary_id) 
     throws Exceptions.InvalidCountException, Exceptions.InvalidRangeException, 
-    Exceptions.UnbalancedException, Exceptions.UndersizeException {
+    Exceptions.UnbalancedException, Exceptions.UndersizeException, FileNotFoundException {
 
         // specify dictionary file path
         Path relative_path = Paths.get(PATH + "hangman_DICTIONARY-" + dictionary_id + ".txt");
@@ -144,8 +139,7 @@ public class Dictionary {
             }
         }
         catch (IOException e) {
-            e.printStackTrace();
-            return new String[0];
+            throw new FileNotFoundException();
         }
 
         String[] dictionary = file_contents.toArray(new String[0]);

@@ -3,6 +3,7 @@ package com.example.hangman;
 import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -54,8 +55,7 @@ public class Game {
     }
 
 
-    // TODO: remove prints
-    public void setGame (String dictionary_id) {
+    public void setGame (String dictionary_id) throws Exception{
         this.word = "";
         this.length = 0;
         this.displayed_word = new char[]{'\u0000'};
@@ -75,10 +75,8 @@ public class Game {
             dictionary = Dictionary.load(dictionary_id);
         }
         catch (Exceptions.UnbalancedException | Exceptions.UndersizeException | Exceptions.InvalidRangeException |
-            Exceptions.InvalidCountException e) {
-            System.err.println("Error loading dictionary with id: " + dictionary_id);
-            e.printStackTrace();
-            return;
+            Exceptions.InvalidCountException | FileNotFoundException e) {
+            throw new Exception("Game.setGame(): error loading dictionary with id: " + dictionary_id);
         }
 
         // get a random word from the dictionary
@@ -110,18 +108,6 @@ public class Game {
                 }
             }
         }
-
-        // debugging print statements
-        System.out.println(this.word);
-        System.out.println(this.length);
-        System.out.println(this.possible_answers.toString());
-
-        for (int[] integer : this.probabilities) {
-            for (int j = 0; j < this.probabilities[0].length; j++) {
-                System.out.print(integer[j] + " ");
-            }
-            System.out.println("\n");
-        }
     }
 
 
@@ -134,7 +120,6 @@ public class Game {
     // inserts character into position and increases points if correct guess
     // decrements tries by one and decreases points if wrong guess
     // returns true is the game reached a final state (win/loss)
-    // TODO: remove prints
     public boolean nextMove (char c, byte position) {
         position--;
         // check if the move is valid
@@ -171,16 +156,8 @@ public class Game {
 
                 // the player found the word
                 if (this.word.equals(new String(this.displayed_word))) {
-                    System.out.println("Victory");
                     this.victory = true;
                     this.finished = true;
-                }
-
-                // debugging prints
-                // correct guess, game continues
-                else {
-                    System.out.println("Found " + c + " in position " + position);
-                    System.out.println(this.displayed_word);
                 }
             }
 
@@ -188,26 +165,18 @@ public class Game {
             else {
                 this.success = false;
                 points -= Math.min(this.points, 15);
-                System.out.println(this.tries-1);
 
                 // lost game
                 if (--this.tries == 0) {
-                    // debugging prints
-                    System.out.println("Out of tries");
-                    System.out.println("Word was " + this.word);
                     this.victory = false;
                     this.finished = true;
-                }
-                // wrong guess, game continues
-                else {
-                    System.out.println("No " + c + " in position " + position);
                 }
             }
         }
 
         // illegal move - shouldn't happen with gui
         else {
-            System.out.println("nextMove illegal arguments" + c + " " + position);
+            System.err.println("nextMove illegal arguments" + c + " " + position);
         }
         this.updateProbabilities();
 
@@ -358,6 +327,7 @@ public class Game {
             return new Image(pic);
         }
         catch (Exception e) {
+            System.err.println("Game.getTries(): error loading images");
             e.printStackTrace();
             return null;
         }
@@ -390,7 +360,6 @@ public class Game {
 
 
     public String getPossibleAnswers() {
-        System.out.println(this.possible_answers);
         StringBuilder sb = new StringBuilder();
         boolean newline = true;
         char [][] prob_chars = this.getProbChars();
