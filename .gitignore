@@ -24,3 +24,5 @@ hs_err_pid*
 *.txt
 /target/original-Hangman-1.0-SNAPSHOT.jar
 /lib/
+/latex/
+*.pdf

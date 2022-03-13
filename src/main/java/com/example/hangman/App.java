@@ -513,6 +513,7 @@ public class App extends Application {
                 dialog.initOwner(stage);
                 String msg = (game.getWinner().equals("PLAYER")) ? "Congratulations!" : "Better luck next time";
                 String ttl = (game.getWinner().equals("PLAYER")) ? "Victory" : "Defeat";
+                word.setText(game.getWord());
                 Label message = new Label(msg);
                 HBox message_box = new HBox(message);
                 message_box.setPadding(new Insets(20));
